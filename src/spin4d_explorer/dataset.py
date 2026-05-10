@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import h5py
+import numpy as np
 import pandas as pd
 
-from spin4d_explorer.npy import RemoteNpy, open_remote_npy
+from spin4d_explorer.array import RemoteArray
 from spin4d_explorer.remote import DEFAULT_BASE_URL, load_manifest, open_remote_h5
 
 # variable -> subdomain index, per http://dtn-itc.ifa.hawaii.edu/spin4d/DR1/
@@ -24,6 +25,19 @@ MURAM_VARIABLES: dict[str, int] = {
     "tau500": 11,
 }
 
+# Per-case MURaM cube shapes (raw float32). The 25x25x8 Mm runs are
+# (1536, 1536, 128); the Large run (50x50x8 Mm) is 4x in horizontal.
+# Source: spin4d-data notebook does
+#   np.fromfile(..., dtype=np.float32).reshape((1536, 1536, 128))
+MURAM_SHAPES: dict[str, tuple[int, int, int]] = {
+    "SPIN4D_SSD":       (1536, 1536, 128),
+    "SPIN4D_SSD_100G":  (1536, 1536, 128),
+    "SPIN4D_SSD_200G":  (1536, 1536, 128),
+    "SPIN4D_SSD_50G":   (1536, 1536, 128),
+    "SPIN4D_SSD_50G_V": (1536, 1536, 128),
+    "SPIN4D_SSD_Large": (3072, 3072, 128),
+}
+
 STOKES_WAVELENGTHS: tuple[int, ...] = (6302, 15648)
 
 
@@ -32,15 +46,23 @@ def cube(
     step: str | int,
     var: str,
     *,
+    shape: tuple[int, ...] | None = None,
     base_url: str = DEFAULT_BASE_URL,
-) -> RemoteNpy:
-    """Open a MURaM cube by physical variable name."""
+) -> RemoteArray:
+    """Open a MURaM cube by physical variable name. Pass shape= to override the per-run lookup."""
     if var not in MURAM_VARIABLES:
         raise ValueError(
             f"unknown variable {var!r}; pick one of {sorted(MURAM_VARIABLES)}"
         )
+    if shape is None:
+        if run not in MURAM_SHAPES:
+            raise ValueError(
+                f"unknown run {run!r}; pass shape= or use one of {sorted(MURAM_SHAPES)}"
+            )
+        shape = MURAM_SHAPES[run]
     file_name = f"subdomain_{MURAM_VARIABLES[var]}.{_format_step(step)}"
-    return open_remote_npy(f"{base_url}/{run}/{file_name}")
+    url = f"{base_url}/{run}/{file_name}"
+    return RemoteArray(url, shape=shape, dtype=np.float32)
 
 
 def stokes(

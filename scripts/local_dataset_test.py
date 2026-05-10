@@ -12,7 +12,6 @@ from pathlib import Path
 import h5py
 import numpy as np
 import pandas as pd
-from numpy.lib.format import write_array
 
 from spin4d_explorer.dataset import (
     MURAM_VARIABLES,
@@ -22,6 +21,8 @@ from spin4d_explorer.dataset import (
     list_steps,
     stokes,
 )
+
+TEST_SHAPE = (16, 16, 8)
 
 
 def _start_local_server(directory: Path, port: int) -> socketserver.TCPServer:
@@ -49,12 +50,11 @@ def _build_synthetic_dr1(root: Path) -> None:
 
     manifest_rows: list[dict] = []
     for step in steps:
-        # 12 MURaM cube files per snapshot
+        # 12 MURaM cube files per snapshot — raw float32, no header
         for var, idx in MURAM_VARIABLES.items():
-            arr = rng.standard_normal((16, 16, 8), dtype=np.float32)
+            arr = rng.standard_normal(TEST_SHAPE, dtype=np.float32)
             path = root / run / f"subdomain_{idx}.{step}"
-            with open(path, "wb") as fh:
-                write_array(fh, arr, allow_pickle=False)
+            arr.tofile(path)
             manifest_rows.append(
                 {"run": run, "step": step, "file_type": "MURaM",
                  "is_flipped": "-", "file_name": path.name}
@@ -105,20 +105,23 @@ def main() -> None:
                   f"{(snap['file_type'] == 'SIR').sum()} Stokes)")
             assert len(snap) == 14  # 12 MURaM + 2 Stokes
 
-            # 3. cube() — by physical variable name
-            with cube("SPIN4D_SSD", "031544", "Bx", base_url=base_url) as bx:
+            # 3. cube() — by physical variable name; pass shape= to override
+            #    the per-run lookup (production runs are 1536x1536x128)
+            with cube("SPIN4D_SSD", "031544", "Bx",
+                      shape=TEST_SHAPE, base_url=base_url) as bx:
                 bx_arr = bx.read()
                 bx_slab = bx.read_slab(0, 4)
                 print(f"\ncube('SPIN4D_SSD', '031544', 'Bx'): "
                       f"shape={bx.shape}, dtype={bx.dtype}, "
                       f"slab[0:4].shape={bx_slab.shape}")
-                assert bx.shape == (16, 16, 8)
+                assert bx.shape == TEST_SHAPE
                 assert bx_slab.shape == (4, 16, 8)
                 assert np.array_equal(bx_arr[0:4], bx_slab)
 
             # Same path via integer step
-            with cube("SPIN4D_SSD", 31544, "T", base_url=base_url) as t:
-                assert t.shape == (16, 16, 8)
+            with cube("SPIN4D_SSD", 31544, "T",
+                      shape=TEST_SHAPE, base_url=base_url) as t:
+                assert t.shape == TEST_SHAPE
                 print(f"cube(..., step=31544 [int], 'T'): shape={t.shape}  "
                       f"(int step coerced to '031544')")
 
@@ -135,7 +138,8 @@ def main() -> None:
 
             # 5. error handling
             try:
-                cube("SPIN4D_SSD", "031544", "not_a_variable", base_url=base_url)
+                cube("SPIN4D_SSD", "031544", "not_a_variable",
+                     shape=TEST_SHAPE, base_url=base_url)
             except ValueError as e:
                 print(f"\nbad var name correctly rejected: {e}")
             else:
