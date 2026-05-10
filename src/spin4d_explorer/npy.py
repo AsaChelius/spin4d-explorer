@@ -11,9 +11,10 @@ import io
 from dataclasses import dataclass
 from typing import Self
 
-import fsspec
 import numpy as np
 from numpy.lib import format as npyfmt
+
+from spin4d_explorer._http import RangeFile
 
 DEFAULT_HEADER_PROBE = 8192
 
@@ -52,8 +53,7 @@ class RemoteNpy:
         self, url: str, *, header_probe_bytes: int = DEFAULT_HEADER_PROBE
     ) -> None:
         self._url = url
-        self._fs = fsspec.filesystem("http")
-        self._fileobj = self._fs.open(url, "rb")
+        self._fileobj = RangeFile(url)
         try:
             self._header = _parse_npy_header(self._fileobj.read(header_probe_bytes))
         except ValueError:

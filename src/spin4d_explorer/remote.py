@@ -5,12 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-import fsspec
 import h5py
 import pandas as pd
 
+from spin4d_explorer._http import DEFAULT_BLOCK_SIZE, RangeFile
+
 DEFAULT_BASE_URL = "http://dtn-itc.ifa.hawaii.edu/spin4d/DR1"
-DEFAULT_BLOCK_SIZE = 4 * 1024 * 1024
 
 
 @dataclass(frozen=True)
@@ -25,9 +25,7 @@ class DatasetInfo:
 
 def open_remote_h5(url: str, *, block_size: int = DEFAULT_BLOCK_SIZE) -> h5py.File:
     """Open a remote .h5 file. Slicing pulls only the bytes you ask for."""
-    fs = fsspec.filesystem("http")
-    fileobj = fs.open(url, "rb", block_size=block_size)
-    return h5py.File(fileobj, "r")
+    return h5py.File(RangeFile(url, block_size=block_size), "r")
 
 
 def inspect_h5(url: str) -> list[DatasetInfo]:
