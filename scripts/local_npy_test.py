@@ -1,12 +1,4 @@
-"""Local smoke test for the remote ``.npy`` streaming layer.
-
-Creates two synthetic ``.npy`` files (C-order and Fortran-order) that mimic
-SPIn4D MURaM cube layout, serves them from a local HTTP server, and verifies
-that ``RemoteNpy`` reads both whole arrays and slabs correctly.
-
-Validates the byte-offset arithmetic without depending on the production
-data server.
-"""
+"""Local .npy smoke test. Both C-order and F-order, slab + full read."""
 
 from __future__ import annotations
 

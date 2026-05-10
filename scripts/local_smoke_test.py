@@ -1,12 +1,4 @@
-"""Local smoke test for the streaming architecture.
-
-Creates a small synthetic HDF5 file that mimics the SPIn4D Stokes layout,
-serves it from a local HTTP server, and verifies that ``inspect_h5`` and
-``open_remote_h5`` work end-to-end against it. No external network needed.
-
-If this passes, the package's streaming layer is correctly wired regardless of
-whether the production data server happens to be reachable at the moment.
-"""
+"""Local HDF5 smoke test. Synthetic .h5 served from a thread-bound HTTP server."""
 
 from __future__ import annotations
 

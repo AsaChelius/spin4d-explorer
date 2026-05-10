@@ -1,12 +1,4 @@
-"""End-to-end smoke test against the real SPIn4D-DR1 server.
-
-Run when ``http://dtn-itc.ifa.hawaii.edu/spin4d/DR1/`` is reachable.
-Exercises every public API entry point without downloading any whole 9 GB
-file: lists runs/steps from the manifest, opens one MURaM cube and reads
-a small slab, opens one Stokes file and inspects + slices it.
-
-Total network traffic: ~tens of MB at most. No local cache file.
-"""
+"""Smoke test against the real SPIn4D-DR1 server. Run when dtn-itc is reachable."""
 
 from __future__ import annotations
 

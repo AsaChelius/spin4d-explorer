@@ -1,11 +1,4 @@
-"""Local end-to-end test for the high-level dataset API.
-
-Stands up a synthetic SPIn4D-DR1-shaped directory tree (manifest CSV +
-``<run>/subdomain_<i>.<step>`` cubes + ``<run>/stokes-<step>-<wl>.h5``
-files), serves it from a local HTTP server, and verifies that
-``cube()``, ``stokes()``, ``list_runs()``, ``list_steps()``, and
-``files_for()`` all wire up correctly.
-"""
+"""End-to-end test of cube/stokes/list_runs against a synthetic DR1 tree."""
 
 from __future__ import annotations
 

@@ -1,14 +1,4 @@
-"""spin4d-explorer: stream the SPIn4D solar magnetism dataset without local downloads.
-
-Public API
-----------
-- :func:`open_remote_h5` — open a remote HDF5 file for streaming reads
-- :func:`inspect_h5` — return the structure of a remote HDF5 file (metadata only)
-- :func:`load_manifest` — load the SPIn4D-DR1 file manifest as a pandas DataFrame
-- :func:`file_url` — construct a full URL for a DR1 file given run + filename
-- :data:`DEFAULT_BASE_URL` — the IfA Hawaii data root
-- :class:`DatasetInfo` — dataclass describing one HDF5 dataset
-"""
+"""Stream the SPIn4D solar magnetism dataset over HTTP."""
 
 from __future__ import annotations
 
@@ -60,13 +50,5 @@ __all__ = [
 
 
 def main() -> None:
-    """CLI entry point — print package version and a brief overview."""
     print(f"spin4d-explorer {__version__}")
-    print("Stream the SPIn4D solar magnetism dataset without local downloads.")
-    print(f"Data root: {DEFAULT_BASE_URL}")
-    print()
-    print("Quick start:")
-    print("  from spin4d_explorer import inspect_h5, file_url")
-    print("  url = file_url('SPIN4D_SSD', 'stokes-031544-6302.h5')")
-    print("  for ds in inspect_h5(url):")
-    print("      print(ds.path, ds.shape, ds.dtype)")
+    print(f"data root: {DEFAULT_BASE_URL}")
